@@ -1,0 +1,92 @@
+% This script is an example for how to solve question 1 in the module for
+% short-term synaptic plasticity of the G-node course.
+% Written by Alex Loebel, 15.2.2014
+
+% units are milli-seconds and milli-volts
+clear all;
+% initial conditions
+x(1)=1;    % available resources
+y(1)=0;    % active resources
+V(1)=0;    % membrane voltage
+
+t=0;       % initial time
+tmax=1200; % length of simulation
+dt=0.25;   % time step
+
+tau_rec=1000;  % recovery time constant
+tau_mem=32;    % membrane time constant 
+tau_in=1.8;    % inactivation time constant
+
+A=144;     % response amplitude
+u=0.26;    % utilization parameter
+
+spike_times=[100:50:450 1000];   % spike times
+k=1;       % index of spikes
+ind=1;     % index of vectors, transform time to index
+
+
+% the dynamics, using the Euler method
+while t<tmax
+    
+    % if a spike arrives
+    if t>=spike_times(k) & t<spike_times(k)+dt
+        x(ind+1)=x(ind)+dt*((1-x(ind))/tau_rec-u*x(ind)/dt); %%1a utilization
+        y(ind+1)=y(ind)+dt*(-y(ind)/tau_in+u*x(ind)/dt); %%1b
+    
+        if k<9
+            k=k+1;
+        end
+        
+    % at all other times when there is no spike    
+    else
+        x(ind+1)=x(ind)+dt*((1-x(ind))/tau_rec); %% no utilization, hence recovery
+        y(ind+1)=y(ind)+dt*(-y(ind)/tau_in);
+    end
+
+    % dynamics of voltage and updating the indices
+    V(ind+1)=V(ind)+dt/tau_mem*(-V(ind)+A*y(ind)); %%2
+    
+    
+    ind=ind+1;
+    t=t+dt;
+end
+
+% plotting the different variables x, y and V. 
+% also, the last plot shows the experimental traces, so one could compare
+% it with the solution of the simulation. 
+figure(1)
+plot(0:0.25:tmax,x,'k.-')
+xlabel('Time [ms]', 'Fontsize', 16)
+ylabel('x', 'Fontsize', 16)
+title('Fraction of available resources', 'Fontsize', 20, 'Fontweight', 'B')
+box off
+axis ([-0.5 1220 -0.1 1.1])
+
+figure(2)
+plot(0:0.25:tmax,y,'k.-')
+xlabel('Time [ms]', 'Fontsize', 16)
+ylabel('y', 'Fontsize', 16)
+title('Fraction of active resources', 'Fontsize', 20, 'Fontweight', 'B')
+box off
+axis ([-0.5 1220 -0.1 1.1])
+
+figure(3)
+plot(0:0.25:tmax,V,'k.-')
+xlabel('Time [ms]', 'Fontsize', 16)
+ylabel('V [mV]', 'Fontsize', 16)
+title('Simulated membrane potential', 'Fontsize', 20, 'Fontweight', 'B')
+box off
+axis ([-0.5 1220 -0.1 2.1])
+
+load Data_depressing
+figure(4)
+plot(0.25:0.25:1200, mean(V_depressing), 'b.-')
+xlabel('Time [ms]', 'Fontsize', 16)
+ylabel('V [mV]', 'Fontsize', 16)
+title('Measured membrane potential', 'Fontsize', 20, 'Fontweight', 'B')
+box off
+axis ([-0.5 1220 -0.1 2.1])
+
+
+
+
